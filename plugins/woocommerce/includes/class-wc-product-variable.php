@@ -336,7 +336,6 @@ class WC_Product_Variable extends WC_Product {
 		}
 
 		foreach ( $variation_ids as $variation_id ) {
-
 			$variation = wc_get_product( $variation_id );
 
 			// Hide out of stock variations if 'Hide out of stock items from the catalog' is checked.
@@ -357,14 +356,22 @@ class WC_Product_Variable extends WC_Product {
 				continue;
 			}
 
-			if ( 'array' === $return ) {
-				$available_variations[] = $this->get_available_variation( $variation );
-			} else {
-				$available_variations[] = $variation;
-			}
+			$available_variations[] = $variation;
 		}
 
-		if ( 'array' === $return ) {
+		if ( 'array' === $return && ! empty( $available_variations ) ) {
+			// Prime caches to reduce future queries.
+			$attachment_ids = array();
+			foreach ( $available_variations as $variation ) {
+				$attachment_ids[] = array( $variation->get_image_id( 'edit' ) );
+				$attachment_ids[] = $variation->get_gallery_image_ids( 'edit' );
+			}
+			$attachment_ids = array_map( 'intval', array_unique( array_filter( array_merge( ...$attachment_ids ) ) ) );
+			if ( ! empty( $attachment_ids ) ) {
+				_prime_post_caches( $attachment_ids );
+			}
+
+			$available_variations = array_map( fn ( $variation ) => $this->get_available_variation( $variation ), $available_variations );
 			$available_variations = array_values( array_filter( $available_variations ) );
 		}
 
