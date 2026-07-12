@@ -326,9 +326,10 @@ class WC_Product_Variable extends WC_Product {
 	 * @phpstan-return ($return is 'array' ? array[] : WC_Product_Variation[])
 	 */
 	public function get_available_variations( $return = 'array' ) {
+		/** @var WC_Product_Variation[] $available_variations */
+		$available_variations    = array();
 		$variation_ids           = $this->get_children();
 		$hide_out_of_stock_items = ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) );
-		$available_variations    = array();
 
 		if ( ! empty( $variation_ids ) ) {
 			// Prime caches to reduce future queries.
