@@ -371,6 +371,7 @@ class WC_Product_Variable extends WC_Product {
 				_prime_post_caches( $attachment_ids );
 			}
 
+			/** @var array[] $available_variations */
 			$available_variations = array_map( fn ( $variation ) => $this->get_available_variation( $variation ), $available_variations );
 			$available_variations = array_values( array_filter( $available_variations ) );
 		}
