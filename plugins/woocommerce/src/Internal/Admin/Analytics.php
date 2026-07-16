@@ -5,6 +5,7 @@
 
 namespace Automattic\WooCommerce\Internal\Admin;
 
+use Automattic\Jetpack\Constants;
 use Automattic\WooCommerce\Admin\API\Reports\Cache;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
@@ -115,6 +116,13 @@ class Analytics {
 	 */
 	public static function maybe_reload_page() {
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) || ! self::$is_updated ) {
+			return;
+		}
+
+		// Never redirect during REST API requests, e.g. when the setting is toggled over a
+		// Jetpack-tunneled API call: the redirect would replace the JSON response and fail
+		// the request. See https://github.com/woocommerce/woocommerce/issues/32294.
+		if ( Constants::is_true( 'REST_REQUEST' ) ) {
 			return;
 		}
 

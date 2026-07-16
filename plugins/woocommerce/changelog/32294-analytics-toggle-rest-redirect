@@ -1,0 +1,4 @@
+Significance: patch
+Type: fix
+
+Stop the Analytics enable/disable toggle from issuing a page-reload redirect during REST API requests, which failed Jetpack-tunneled updates of the woocommerce_analytics_enabled setting.
