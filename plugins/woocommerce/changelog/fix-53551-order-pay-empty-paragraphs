@@ -1,0 +1,4 @@
+Significance: patch
+Type: fix
+
+Keep the payment method radio input and its label on one line in checkout/payment-method.php, so themes and page builders that run the order-pay page markup through wpautop no longer render empty paragraphs or stray line breaks between them.
