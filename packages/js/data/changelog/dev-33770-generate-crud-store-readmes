@@ -1,0 +1,4 @@
+Significance: patch
+Type: dev
+
+Add a template driven generator for CRUD data store READMEs and generate the missing ones.
