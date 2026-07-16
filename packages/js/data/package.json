@@ -45,6 +45,7 @@
 		"build:publish:project:types": "tsc --build --emitDeclarationOnly",
 		"build:publish:project:runtime": "pnpm build:project",
 		"changelog": "XDEBUG_MODE=off composer install --quiet && composer exec -- changelogger",
+		"generate:readmes": "node ./bin/generate-crud-readmes.mjs",
 		"update:php": "XDEBUG_MODE=off composer update --quiet",
 		"lint": "pnpm --if-present '/^lint:lang:.*$/'",
 		"lint:fix": "pnpm --if-present '/^lint:fix:lang:.*$/'",
