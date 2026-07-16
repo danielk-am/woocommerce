@@ -1,0 +1,4 @@
+Significance: minor
+Type: update
+
+Bucket analytics cache invalidations to 10 minute windows and lower the cache TTL to one hour, both filterable, so busy stores can serve cached report data.
