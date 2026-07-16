@@ -52,8 +52,19 @@ class Cache {
 			 */
 			$bucket_size = (int) apply_filters( 'woocommerce_analytics_cache_version_bucket_size', 10 * MINUTE_IN_SECONDS );
 
-			$timestamp       = time();
-			$transient_value = (string) ( $bucket_size > 0 ? $timestamp - ( $timestamp % $bucket_size ) : $timestamp );
+			$timestamp    = time();
+			$bucket_start = $bucket_size > 0 ? $timestamp - ( $timestamp % $bucket_size ) : $timestamp;
+
+			// Never move the version backwards. External callers write a raw,
+			// unbucketed timestamp into this transient (the coupons lookup
+			// repair tool calls WC_Cache_Helper::get_transient_version() with
+			// $refresh = true), and rewinding to the bucket start would make
+			// report data cached before that explicit bust valid again.
+			if ( is_numeric( $transient_value ) && (int) $transient_value >= $bucket_start ) {
+				return $transient_value;
+			}
+
+			$transient_value = (string) $bucket_start;
 
 			set_transient( $transient_name, $transient_value );
 		}

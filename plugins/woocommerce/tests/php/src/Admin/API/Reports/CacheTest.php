@@ -19,6 +19,18 @@ class CacheTest extends WC_Unit_Test_Case {
 	private $cache_key = 'wc_report_cache_test';
 
 	/**
+	 * Set up a clean version transient.
+	 *
+	 * Earlier tests in the suite may leave a raw version behind, and the
+	 * monotonicity clamp in Cache::get_version() would preserve it.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+		delete_transient( $this->cache_key );
+		delete_transient( Cache::VERSION_OPTION . '-transient-version' );
+	}
+
+	/**
 	 * Tear down test fixtures.
 	 */
 	public function tearDown(): void {
@@ -67,6 +79,45 @@ class CacheTest extends WC_Unit_Test_Case {
 		}
 
 		$this->assertSame( 'expensive-report-data', $cached );
+	}
+
+	/**
+	 * @testdox An invalidation never rolls the version back behind an externally written raw version.
+	 */
+	public function test_version_is_monotonic_after_external_raw_refresh(): void {
+		// A large bucket keeps every step below inside one bucket.
+		add_filter(
+			'woocommerce_analytics_cache_version_bucket_size',
+			function () {
+				return HOUR_IN_SECONDS;
+			}
+		);
+
+		$bucket_before = intdiv( time(), HOUR_IN_SECONDS );
+
+		Cache::invalidate();
+		Cache::set( $this->cache_key, 'pre-bust-report-data' );
+
+		// An external caller writes a raw, unbucketed version, the way the
+		// coupons lookup repair tool does through
+		// WC_Cache_Helper::get_transient_version( 'woocommerce_reports', true ),
+		// which stores (string) time(). Written directly with a mid-bucket
+		// timestamp so the test does not depend on where in the bucket it runs.
+		$raw_version = (string) ( (int) Cache::get_version() + 5 * MINUTE_IN_SECONDS );
+		set_transient( Cache::VERSION_OPTION . '-transient-version', $raw_version );
+
+		$this->assertFalse( Cache::get( $this->cache_key ), 'The raw version write must bust the earlier cache entry.' );
+
+		// An entity change lands in the same bucket.
+		Cache::invalidate();
+		$version_after = Cache::get_version();
+
+		if ( intdiv( time(), HOUR_IN_SECONDS ) !== $bucket_before ) {
+			$this->markTestSkipped( 'A bucket boundary fell inside the test window.' );
+		}
+
+		$this->assertSame( $raw_version, $version_after, 'invalidate() must not roll the version back to the bucket start.' );
+		$this->assertFalse( Cache::get( $this->cache_key ), 'The pre-bust cache entry must stay busted after a same-bucket invalidation.' );
 	}
 
 	/**
