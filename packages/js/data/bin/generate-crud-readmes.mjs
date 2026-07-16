@@ -13,7 +13,10 @@
  *
  * Store details (resource names, store name, REST namespace) are read from
  * each store's index.ts and constants.ts. The docs link is derived from the
- * plural resource name; verify it resolves when a new store is added.
+ * plural resource name; when adding a new store, open the link and check the
+ * page content is the expected document (developer.woocommerce.com answers
+ * HTTP 200 with a soft 404 page for unknown slugs, so a status check alone
+ * proves nothing).
  */
 
 /**
